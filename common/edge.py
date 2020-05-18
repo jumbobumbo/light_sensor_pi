@@ -21,7 +21,9 @@ class TimeTillEdge:
         board_dict = {"board": GPIO.BOARD, "bcm": GPIO.BCM}
         self.gpio_mode = board_dict[gpio_mode.lower()]
         self.gpio_pin = gpio_pin
-        edge_dict = {"rising": GPIO.RISING, "falling": GPIO.FALLING, "both": GPIO.BOTH}
+        edge_dict = {"rising": GPIO.RISING,
+                     "falling": GPIO.FALLING,
+                     "both": GPIO.BOTH}
         self.edge = edge_dict[edge.lower()]
         self.timeout = timeout
 
@@ -40,6 +42,7 @@ class TimeTillEdge:
         Arguments:
             io_order {str} -- ["in_out", "out_in"]
         """
+
         def __setup(gp_in_out): GPIO.setup(self.gpio_pin, gp_in_out)
 
         if io_order.lower() == "in_out":
@@ -53,8 +56,8 @@ class TimeTillEdge:
             sleep(0.1)
             __setup(GPIO.IN)
         else:
-            raise ValueError(f"{io_order} is not a supported arg. Supported args are: 'in_out', 'out_in'")
-
+            raise ValueError(
+                f"{io_order} is not a supported arg. Supported args are: 'in_out', 'out_in'")
 
     def edge_time(self, io_order: str = "out_in") -> float:
         """
