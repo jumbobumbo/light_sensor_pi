@@ -1,5 +1,5 @@
 import RPi.GPIO as GPIO
-from time import sleep
+from time import sleep, time
 
 
 class LightValueList:
@@ -45,10 +45,11 @@ class LightValueList:
         self.gpio.setup(self.gpio_pin, self.gpio.IN)
 
         # add to count until pin value is high
+        start_time = time()
         count = 0
         while (self.gpio.input(self.gpio_pin) == self.gpio.LOW):
             count += 1
-
+        print(time() - start_time)
         return count
 
 
