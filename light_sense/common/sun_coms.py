@@ -6,23 +6,33 @@ class RetrieveSunRiseSet:
     def __init__(self, uri: str = "api.sunrise-sunset.org"):
         self.uri = uri
 
-    def _return_between_markers(self, input_string: str, w_chars: list = ["\[", "\]"]) -> str:
-        res = r_search(f"{w_chars[0]}(.*){w_chars[1]}", input_string)
-        return res.group(1)
+    def _return_between_markers(self, input_string: str, m_chars: list = ["\[", "\]"]) -> str:
+        """
+        example with default m_chars: input "<response [200]>", return "200"
+        Arguments:
+            input_string {str} -- string you wish to search in
 
-    def return_response_json(self, get_data: dict) -> dict:
+        Keyword Arguments:
+            m_chars {list} -- character markers (default: {["\[", "\]"]})
+
+        Returns:
+            str -- text between markers
+        """
+        return r_search(f"{m_chars[0]}(.*){m_chars[1]}", input_string).group(1)
+
+    def return_response_json(self, input_data: dict) -> dict:
         """
         returns response sunrie response json as dict
 
         Arguments:
-            get_data {dict} -- example: {"lat": 12.34, "lng": 0.089600, "date": "today"}
+            input_data {dict} -- example: {"lat": 12.34, "lng": 0.089600, "date": "today"}
 
         Returns:
             dict -- dict object from api
         """
         unsupported_keys = []
 
-        for key in get_data.keys():
+        for key in input_data.keys():
             if key not in ["lat", "lng", "date"]:
                 unsupported_keys.append(key)
 
@@ -31,7 +41,7 @@ class RetrieveSunRiseSet:
                 f"Keys must be: ['lat', 'lng', 'date'], not {unsupported_keys}")
 
         response = get(
-            f"https://{self.uri}/json?lat={get_data['lat']}&lng={get_data['lng']}&date={get_data['date']}&formatted=0")
+            f"https://{self.uri}/json?lat={input_data['lat']}&lng={input_data['lng']}&date={input_data['date']}&formatted=0")
 
         res_code = self._return_between_markers(str(response))
 
@@ -40,20 +50,18 @@ class RetrieveSunRiseSet:
         else:
             return ValueError(f"unexpected response code: {res_code}")
 
-    def req_data_from_response(self, get_data: dict, dict_keys: list = ["sunrise", "sunset"]) -> dict:
+    def req_data_from_response(self, input_data: dict, dict_keys: list = ["sunrise", "sunset"]) -> dict:
         """
-        [summary]
-
         Arguments:
-            get_data {dict} -- [description]
+            input_data {dict} --  example: {"lat": 12.34, "lng": 0.089600, "date": "today"}
 
         Keyword Arguments:
-            dict_keys {list} -- [description] (default: {["sunrise", "sunset"]})
+            dict_keys {list} -- keys you want to retrieve the data for (default: {["sunrise", "sunset"]})
 
         Returns:
             dict - dict of requested keys, if none specified returns all from 'results'
         """
-        json_resp = self.return_response_json(get_data)
+        json_resp = self.return_response_json(input_data)
 
         if len(dict_keys) == 0:
             # removes the status key, val pair but it keeps everything else
