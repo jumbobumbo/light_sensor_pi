@@ -68,12 +68,19 @@ class LB130(object):
                 col1 = 'system'
                 col2 = 'get_sysinfo'
                 col3 = 'light_state'
+                col4 = 'dft_on_state'
                 self.__alias = data[col1][col2]['alias']
                 self.__on_off = int(data[col1][col2][col3]['on_off'])
-                self.__hue = int(data[col1][col2][col3]['hue'])
-                self.__saturation = int(data[col1][col2][col3]['saturation'])
-                self.__brightness = int(data[col1][col2][col3]['brightness'])
-                self.__color_temp = int(data[col1][col2][col3]['color_temp'])
+                if self.__on_off == 1: # blub is on
+                    self.__hue = int(data[col1][col2][col3]['hue'])
+                    self.__saturation = int(data[col1][col2][col3]['saturation'])
+                    self.__brightness = int(data[col1][col2][col3]['brightness'])
+                    self.__color_temp = int(data[col1][col2][col3]['color_temp'])
+                else:  # bulb is off
+                    self.__hue = int(data[col1][col2][col3][col4]['hue'])
+                    self.__saturation = int(data[col1][col2][col3][col4]['saturation'])
+                    self.__brightness = int(data[col1][col2][col3][col4]['brightness'])
+                    self.__color_temp = int(data[col1][col2][col3][col4]['color_temp'])
                 self.device_id = str(data[col1][col2]['deviceId'])
             except (RuntimeError, TypeError, ValueError) as exception:
                 raise Exception(exception)
@@ -452,3 +459,8 @@ class LB130(object):
                 raise RuntimeError("Error connecting to bulb")
         except:
             raise RuntimeError("Error connecting to bulb")
+
+
+if __name__ == "__main__":
+    light = LB130("192.168.1.141")
+    light.on()
