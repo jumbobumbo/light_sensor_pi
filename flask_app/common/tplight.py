@@ -16,8 +16,8 @@ class LB130(object):
     '''
 
     encryption_key = 0xAB
-
-    __udp_ip = "10.0.0.130"
+    # removed __udp_ip as its assigned on line 61, and the default value was
+    # causing a connection error
     __udp_port = 9999
     __on_off = 0
     __transition_period = 0
