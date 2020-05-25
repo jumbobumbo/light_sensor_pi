@@ -15,7 +15,6 @@ https://github.com/briandorey/tp-link-LB130-Smart-Wi-Fi-Bulb
 This was causing me connection issues, and the variable is created with:  
 self.__udp_ip = ip_address (line 61)  
 If a valid IP is provided anyway, making this member variable declartion unrequired  
-  
 With further review, I also removed all other member variables not created within the trys, except:  
     __udp_port = 9999  
     __transition_period = 0  
@@ -24,6 +23,8 @@ With further review, I also removed all other member variables not created withi
 I added the additonal nested dict key on line 71:  
 col4 = 'dft_on_state'  
 Also the on/off if statement spanning lines 74 - 83  
+  
+  
   
 # Crontolling the light via flask application.  
 ## 1. Review flask app python file (flask_app/flask_app.py)  
