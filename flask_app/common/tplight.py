@@ -459,8 +459,3 @@ class LB130(object):
                 raise RuntimeError("Error connecting to bulb")
         except:
             raise RuntimeError("Error connecting to bulb")
-
-
-if __name__ == "__main__":
-    light = LB130("192.168.1.141")
-    light.on()

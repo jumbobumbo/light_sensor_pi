@@ -1,4 +1,4 @@
-from tplight import LB130
+from common.tplight import LB130
 from functools import wraps
 from time import sleep
 
@@ -45,6 +45,8 @@ class TPLConn:
     @retry()
     def __enter__(self):
         self.light = LB130(self.ip)
+        # the bulb is a little delicate, we will take a little to sleep
+        sleep(0.2)
         return self.light
 
     def __exit__(self, exc_type, exc_val, exc_tb):
