@@ -19,23 +19,8 @@ class LB130(object):
     # removed __udp_ip as its assigned on line 61, and the default value was
     # causing a connection error
     __udp_port = 9999
-    __on_off = 0
     __transition_period = 0
-    __hue = 0
-    __saturation = 0
-    __brightness = 0
-    __color_temp = 0
-    __connected = False
-
-    __alias = ""
-    device_id = ""
-    lamp_beam_angle = 0
-    min_voltage = 0
-    max_voltage = 0
-    wattage = 0
-    incandescent_equivalent = 0
-    max_lumens = 0
-    color_rendering_index = 0
+    # removed other unrequired member variables (created in try later on)
 
     # Public Methods
 

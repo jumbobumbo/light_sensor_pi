@@ -12,7 +12,7 @@ def test_flask() -> str:
     simply for test
     :return: str
     """
-    return "<h1>Pages:</h1><p>tplbulb</p>"
+    return "<h1>Pages:</h1><p>tplbulb_set</p>"
 
 @app.route("/tplbulb_set/", methods=["POST"])
 def tpl_bulb_set() -> str:
@@ -22,12 +22,10 @@ def tpl_bulb_set() -> str:
     example input:
     {
         "ip": "192.168.1.141",
+        "actions" : ["on"],
         "attribs": {
             "hsb": (240, 75, 100),
-            "temperature": 9000,
-            "brightness": 100
-        },
-        "actions" : ["on"]
+        }
     }
 
     Returns:
@@ -41,22 +39,21 @@ def tpl_bulb_set() -> str:
 
     # connect to bulb
     with TPL(post_data["ip"]) as bulb:
-        if "attribs" in post_data:
-            # set bulb attributes
-            for key, val in post_data["attribs"].items():
-                sleep(0.2)
-                setattr(bulb, key, val)
-
         if "actions" in post_data:
             # complete bulb actions
             for action in post_data["actions"]:
-                sleep(0.2)
                 run = getattr(bulb, action)
                 run()
+                sleep(0.5)
+
+        if "attribs" in post_data:
+            # set bulb attributes
+            for key, val in post_data["attribs"].items():
+                setattr(bulb, key, val)
 
         return_str = str(bulb.light_details())
 
     return return_str
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8082, debug=True)
+    app.run(host="0.0.0.0", port=8082)

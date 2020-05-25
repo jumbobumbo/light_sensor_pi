@@ -3,7 +3,7 @@ from functools import wraps
 from time import sleep
 
 
-def retry(exc: str = Exception, retries: int = 2, delay: int = 2):
+def retry(exc: str = Exception, retries: int = 3, delay: int = 5):
     """
     retry decorator
 
@@ -52,8 +52,3 @@ class TPLConn:
     def __exit__(self, exc_type, exc_val, exc_tb):
         # explicitly deletes object on exit
         del self.light
-
-
-if __name__ == "__main__":
-    with TPLConn("192.168.1.141") as tpl:
-        tpl.on()
