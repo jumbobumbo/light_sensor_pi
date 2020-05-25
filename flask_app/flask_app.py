@@ -51,9 +51,9 @@ def tpl_bulb_set() -> str:
             for key, val in post_data["attribs"].items():
                 setattr(bulb, key, val)
 
-        return_str = str(bulb.light_details())
+        return_data = bulb.__dict__
 
-    return return_str
+    return return_data
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8082)
