@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+    flask_app:
+        image: py38_slim_flask
+    ports:
+        - "8082:8082"
+    restart:
+        always
+    command: python3 /app/flask_app.py
