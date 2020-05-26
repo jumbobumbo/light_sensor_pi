@@ -11,4 +11,4 @@ RUN pip3 install -r requirements.txt
 
 # CREATE APP DIR AND COPY
 RUN mkdir app
-COPY app/app
+COPY app /app
