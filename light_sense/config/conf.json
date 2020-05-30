@@ -3,5 +3,21 @@
         "latitude": 12.34,
         "longtitude": 0.089600,
         "date": "today"
+    },
+
+    "bulbs": {
+        "office": "192.168.1.141"
+    },
+
+    "light_attribs": {
+        "day": {
+            "hsb": [240, 75, 100],
+            "temperature": 0
+        },
+        "night": {
+            "hsb": [7, 50, 100],
+            "temperature": 0
+        }
     }
+
 }
