@@ -1,9 +1,11 @@
 {
-    "sunrise_sunset_api": {
-        "latitude": 12.34,
-        "longtitude": 0.089600,
+    "daylight_data": {
+        "lat": 12.34,
+        "lng": 0.089600,
         "date": "today"
     },
+
+    "web_uri": "http://192.168.1.181:8082/sun_get/",
 
     "bulbs": {
         "office": "192.168.1.141"
