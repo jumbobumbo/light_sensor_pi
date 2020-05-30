@@ -22,7 +22,7 @@ class DayLightHours():
         for key in ["daylight_data", "web_uri"]:
             if key not in self.__config.keys():
                 raise KeyError(
-                    f"Keys: 'daylight_data', 'web_uri' must be present in config file'")
+                    "Keys: 'daylight_data', 'web_uri' must be present in config file'")
         # return if good
         return self.__config
 
