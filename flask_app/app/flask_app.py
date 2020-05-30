@@ -87,7 +87,7 @@ def sunrise_api_get() -> dict:
     """
     post_data = request.get_json()
 
-     # basic verification to check 'ip' key is present
+    # basic verification to check if req keys are present
     invalid_keys = key_validator(["lat", "lng", "date"], post_data)
     if invalid_keys:
         return f"following keys are not valid: {invalid_keys}\n" \
