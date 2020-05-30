@@ -7,7 +7,7 @@ from datetime import datetime
 mod_path = Path(__file__).parent
 
 
-class DayLightHours():
+class DayLightHours:
 
     def __init__(self, conf_file="conf.json"):
         """
@@ -38,7 +38,7 @@ class DayLightHours():
             dict -- response json from request
         """
         try:
-            response = post(self.config["web_uri"],
+            response = post(f"{self.config['web_uri']}/sun_get/",
                             json=self.config["daylight_data"])
             response_data = response.json()
         except JSONDecodeError as ex:

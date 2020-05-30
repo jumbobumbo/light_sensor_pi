@@ -5,10 +5,13 @@
         "date": "today"
     },
 
-    "web_uri": "http://192.168.1.181:8082/sun_get/",
+    "web_uri": "http://192.168.1.181:8082",
 
     "bulbs": {
-        "office": "192.168.1.141"
+        "office": {
+            "ip": "192.168.1.141",
+            "group": "office"
+        }
     },
 
     "light_attribs": {
@@ -20,6 +23,10 @@
             "hsb": [7, 50, 100],
             "temperature": 0
         }
+    },
+
+    "time_triggers":{
+        "office": 6
     }
 
 }
