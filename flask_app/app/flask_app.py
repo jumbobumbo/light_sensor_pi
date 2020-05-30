@@ -1,5 +1,7 @@
 from flask import Flask, request
 from common.connection_manager import TPLConn as TPL
+from common.sun_coms import RetrieveSunRiseSet as SunSet
+
 from time import sleep
 
 
@@ -72,6 +74,26 @@ def tpl_bulb_get() -> dict:
     with TPL(post_data["ip"]) as bulb:
         return bulb.__dict__
 
+@app.route("/sun_get/", methods=["POST"])
+def sunrise_api_get() -> dict:
+    """
+    Retrives the sunrise and sunset information of a given location and day
+    Example post input:
+        {"lat": 12.34, "lng": 0.089600, "date": "today"}
+
+    Returns:
+        dict -- example response:
+            {'results': {'sunrise': '2020-05-30T05:33:21+00:00', 'sunset': '2020-05-30T18:21:19+00:00'}}
+    """
+    post_data = request.get_json()
+
+     # basic verification to check 'ip' key is present
+    invalid_keys = key_validator(["lat", "lng", "date"], post_data)
+    if invalid_keys:
+        return f"following keys are not valid: {invalid_keys}\n" \
+               f"only: lat, lng and date are valid"
+
+    return SunSet().req_data_from_response(post_data)
 
 def key_validator(keys: list, data: dict) -> list:
     """
@@ -95,4 +117,4 @@ def key_validator(keys: list, data: dict) -> list:
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8082)
+    app.run(host="0.0.0.0", port=8083)
