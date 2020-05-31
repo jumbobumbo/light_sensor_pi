@@ -49,12 +49,12 @@ time_now_delta = (time_now + timedelta(hours=delta)).strftime('%H:%M:%S')
 bulb = SetLight()
 
 if not args.cut_off_hours[0] < time_now.strftime('%H:%M:%S') < args.cut_off_hours[1]:
-    # day time light
-    if time_now_delta < daylight_hours[1]:
-        dtime = "day"
     # night time light
-    else:
+    if time_now_delta > daylight_hours[1] or "00:00:00" < time_now_delta < args.cut_off_hours[1]:
         dtime = "night"
+    # day time light
+    else:
+        dtime = "day"
 
     # if its dark enough, attempt to turn on the bulb
     if bulb.light_level_reached(args.bulb):
