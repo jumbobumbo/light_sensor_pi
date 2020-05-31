@@ -108,7 +108,7 @@ class TimeTillEdge:
                 return_list.append(edge_t)
 
         if len(return_list) != r_num:
-            return "timeout"
+            return self.timeout  # return timeout value
         else:
             return sum(return_list) / r_num
 

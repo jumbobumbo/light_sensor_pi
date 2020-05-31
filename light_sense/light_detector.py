@@ -29,47 +29,60 @@ class SetLight:
         with open(Path(mod_path, "config", conf_file), "r") as f:
             self.__config = load(f)
 
-    def light_on(self, bulb_name: str, time_attribs: str):
+    def light_level_reached(self,  bulb_name: str) -> bool:
         """
-        [summary]
+        returns true if the trigger time is met
 
         Arguments:
-            bulb_name {str} -- [description]
-            time_attribs {str} -- [description]
-        """
+            bulb_name {str} -- name of bulb in conf file
 
+        Returns:
+            bool -- True if area is dark enough, False if not
+        """
         def _get_gpio_time():
             with TTE() as et:
                 return int(et.return_avg_edge_time())
 
         trigger_time = self.config["time_triggers"][self.config["bulbs"][bulb_name]["group"]]
 
-        if trigger_time <= _get_gpio_time():
-            send_data = {
-                "ip": self.config["bulbs"][bulb_name]["ip"],
-                "actions": ["on"],
-                "attribs": {
-                    "hsb":  self.config["light_attribs"][time_attribs]["hsb"],
-                    "temperature": self.config["light_attribs"][time_attribs]["temperature"]
-                }
-            }
+        if _get_gpio_time() >= trigger_time:
+            return True
+        else:
+            return False
 
-            post(f"{self.config['web_uri']}/tplbulb_set/", json=send_data)
+    def light_on(self, bulb_name: str, time_attribs: str):
+        """
+        turns the bulb on via name (name: ip in conf file)
+
+        Arguments:
+            bulb_name {str} -- name of bulb in conf file
+            time_attribs {str} -- day or night
+        """
+        send_data = {
+            "ip": self.config["bulbs"][bulb_name]["ip"],
+            "actions": ["on"],
+            "attribs": {
+                "hsb":  self.config["light_attribs"][time_attribs]["hsb"],
+                "temperature": self.config["light_attribs"][time_attribs]["temperature"]
+            }
+        }
+
+        return post(f"{self.config['web_uri']}/tplbulb_set/", json=send_data)
 
     def light_off(self, bulb_name: str):
         """
-        [summary]
+        turns the bulb off via name (name: ip in conf file)
 
         Arguments:
-            bulb_name {str} -- [description]
+            bulb_name {str} -- name of bulb in conf file
         """
         send_data = {
             "ip": self.config["bulbs"][bulb_name]["ip"],
             "actions": ["off"]
         }
 
-        post(f"{self.config['web_uri']}/tplbulb_set/", json=send_data)
-
+        return post(f"{self.config['web_uri']}/tplbulb_set/", json=send_data)
 
 if __name__ == "__main__":
     SetLight().light_on("office", "day")
+    SetLight().light_off("office")
