@@ -62,8 +62,7 @@ class SetLight:
             "ip": self.config["bulbs"][bulb_name]["ip"],
             "actions": ["on"],
             "attribs": {
-                "hsb":  self.config["light_attribs"][time_attribs]["hsb"],
-                "temperature": self.config["light_attribs"][time_attribs]["temperature"]
+                "hsb":  self.config["light_attribs"][time_attribs]["hsb"]
             }
         }
 

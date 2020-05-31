@@ -26,7 +26,7 @@ def tpl_bulb_set() -> dict:
         "ip": "192.168.1.141",
         "actions" : ["on"],
         "attribs": {
-            "hsb": (240, 75, 100),
+            "hsb": [240, 75, 100]
         }
     }
 

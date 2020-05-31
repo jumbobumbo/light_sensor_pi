@@ -16,12 +16,10 @@
 
     "light_attribs": {
         "day": {
-            "hsb": [240, 75, 100],
-            "temperature": 0
+            "hsb": [240, 75, 100]
         },
         "night": {
-            "hsb": [7, 50, 100],
-            "temperature": 0
+            "hsb": [351, 74, 80]
         }
     },
 
