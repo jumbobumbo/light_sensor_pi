@@ -59,15 +59,15 @@ if not args.cut_off_hours[0] < time_now.strftime('%H:%M:%S') < args.cut_off_hour
     # if its dark enough, attempt to turn on the bulb
     if bulb.light_level_reached(args.bulb):
         send = bulb.light_on(args.bulb, dtime)
-        print(f"request for {dtime} light at: {time_now.strftime('%H:%M:%S')}")
+        print(f"request for {dtime} light at: {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
     else:  # make sure its off - improve to read value first in next release?
         send = bulb.light_off(args.bulb)
-        print(f"bulb off at {time_now.strftime('%H:%M:%S')}")
+        print(f"bulb off at {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
 
     print(f"post response: {send}")
 
 # cut off time reached
 else:
     send = bulb.light_off(args.bulb)
-    print(f"Cut off reached. Bulb off at {time_now.strftime('%H:%M:%S')}")
+    print(f"Cut off reached. Bulb off at {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
     print(f"post response: {send}")
