@@ -1,4 +1,5 @@
 from common.edge import TimeTillEdge as TTE
+from common.validator import key_validator
 from requests import post
 from json import load
 from pathlib import Path
@@ -15,10 +16,11 @@ class SetLight:
     @property
     def config(self) -> dict:
         # validation
-        for key in ["bulbs", "web_uri", "light_attribs", "time_triggers"]:
-            if key not in self.__config.keys():
-                raise KeyError(
-                    'Keys: "bulbs", "web_uri", "light_attribs", "time_triggers" must be present in config file')
+        unwanted_keys = key_validator(["bulbs", "web_uri", "light_attribs", "time_triggers"], self.__config)
+        if unwanted_keys:
+            raise KeyError(f"unwanted keys: {unwanted_keys}\n"
+                           f"expected keys: bulbs, web_uri, light_attribs, time_triggers"
+                           )
         # return if good
         return self.__config
 

@@ -1,7 +1,8 @@
 from requests import post
 from pathlib import Path
-from json import load, dump
+from json import load, dump, JSONDecodeError
 from datetime import datetime
+from common.validator import key_validator
 
 # Path to parent DIR
 mod_path = Path(__file__).parent
@@ -19,10 +20,11 @@ class DayLightHours:
     @property
     def config(self) -> dict:
         # validation
-        for key in ["daylight_data", "web_uri"]:
-            if key not in self.__config.keys():
-                raise KeyError(
-                    "Keys: 'daylight_data', 'web_uri' must be present in config file'")
+        unwanted_keys = key_validator(["daylight_data", "web_uri"], self.__config)
+        if unwanted_keys:
+            raise KeyError(f"unwanted keys: {unwanted_keys}\n"
+                           f"expected keys: 'daylight_data', 'web_uri'"
+                           )
         # return if good
         return self.__config
 
