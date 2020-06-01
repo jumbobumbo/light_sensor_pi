@@ -2,7 +2,11 @@ from common.time_reader import ReadDayTimeData as td
 from light_detector import SetLight
 from datetime import datetime, timedelta
 from argparse import ArgumentParser
+from os import path, remove
+from pathlib import Path
 
+# move to appropriate place
+mod_path, dir1, quiet_time_f = Path(__file__).parent, "data", "quiet_time.txt"
 
 # cmd line args
 parser = ArgumentParser(description="Turns a bulb off or on depending on time/light level",
@@ -49,6 +53,8 @@ time_now_delta = (time_now + timedelta(hours=delta)).strftime('%H:%M:%S')
 bulb = SetLight()
 
 if not args.cut_off_hours[0] < time_now.strftime('%H:%M:%S') < args.cut_off_hours[1]:
+    if path.exists(Path(mod_path, dir1, quiet_time_f)):
+        remove(Path(mod_path, dir1, quiet_time_f))
     # night time light
     if time_now_delta > daylight_hours[1] or "00:00:00" < time_now_delta < args.cut_off_hours[1]:
         dtime = "night"
@@ -68,6 +74,8 @@ if not args.cut_off_hours[0] < time_now.strftime('%H:%M:%S') < args.cut_off_hour
 
 # cut off time reached
 else:
-    send = bulb.light_off(args.bulb)
-    print(f"Cut off reached. Bulb off at {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
-    print(f"post response: {send}")
+    if not path.exists(Path(mod_path, dir1, quiet_time_f)):
+        with open(Path(mod_path, dir1, quiet_time_f), "x") as _: pass
+        send = bulb.light_off(args.bulb)
+        print(f"Cut off reached. Bulb off at {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
+        print(f"post response: {send}")
