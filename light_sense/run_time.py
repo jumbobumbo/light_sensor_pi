@@ -68,13 +68,13 @@ if not args.cut_off_hours[0] < time_now.strftime('%H:%M:%S') < args.cut_off_hour
             with open(Path(mod_path, dir1, light_on), "x") as _: pass
             send = bulb.light_on(args.bulb, dtime)
             print(f"request for {dtime} light at: {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
+            print(f"post response: {send}")
     else:  # too light, turn off bulb
         if path.exists(Path(mod_path, dir1, light_on)):
             remove(Path(mod_path, dir1, light_on))
             send = bulb.light_off(args.bulb)
             print(f"bulb off at {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
-
-    print(f"post response: {send}")
+            print(f"post response: {send}")
 
 # cut off time reached
 else:
