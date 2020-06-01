@@ -3,10 +3,43 @@ from common.validator import key_validator
 from requests import post
 from json import load
 from pathlib import Path
+from time import sleep
+from functools import wraps
+from re import search as r_search
 
 # Path to parent DIR
 mod_path = Path(__file__).parent
 
+def retry(resp_code: int = 500, retries: int = 2, delay: int = 5):
+    """
+    retry decorator
+
+    Keyword Arguments:
+        resp_code {int} -- http response code from operation
+        retries {int} -- num of retries (default: {2})
+        delay {int} -- time is seconds beween each retry (default: {5})
+    """
+    def retry_dec(f: object):
+
+        @wraps(f)
+        def retry_f(*args, **kwargs):
+            retry_num = retries
+            while retry_num > 1:
+                # attempt to call func
+                func_call = f(*args, **kwargs)
+                response = r_search(f"\[(.*)\]", func_call).group(1)
+                if response == resp_code:  # we didn't want to see that code
+                    retry_num -= 1
+                    # wait delay before try
+                    sleep(delay)
+                else:  # response code is acceptable
+                    return func_call
+            # last chance to connect
+            return f(*args, **kwargs)
+
+        return retry_f
+
+    return retry_dec
 
 class SetLight:
 
@@ -28,6 +61,18 @@ class SetLight:
     def config(self, conf_file):
         with open(Path(mod_path, "config", conf_file), "r") as f:
             self.__config = load(f)
+
+    @retry
+    def poster(self, url: str, json: dict) -> object:
+        """
+        Arguments:
+            url {str} -- url to post to
+            json {dict} -- dictionary object sent as json to post URL
+
+        Returns:
+            object -- object returned from post
+        """
+        return post(url, json=json)
 
     def light_level_reached(self,  bulb_name: str) -> bool:
         """
@@ -66,7 +111,7 @@ class SetLight:
             }
         }
 
-        return post(f"{self.config['web_uri']}/tplbulb_set/", json=send_data)
+        return poster(f"{self.config['web_uri']}/tplbulb_set/", json=send_data)
 
     def light_off(self, bulb_name: str):
         """
@@ -80,7 +125,7 @@ class SetLight:
             "actions": ["off"]
         }
 
-        return post(f"{self.config['web_uri']}/tplbulb_set/", json=send_data)
+        return poster(f"{self.config['web_uri']}/tplbulb_set/", json=send_data)
 
 if __name__ == "__main__":
     SetLight().light_on("office", "day")
