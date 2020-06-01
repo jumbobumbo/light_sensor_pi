@@ -62,7 +62,7 @@ class SetLight:
         with open(Path(mod_path, "config", conf_file), "r") as f:
             self.__config = load(f)
 
-    @retry
+    @retry(resp_code=200)
     def poster(self, url: str, json: dict) -> object:
         """
         Arguments:
@@ -129,4 +129,4 @@ class SetLight:
 
 if __name__ == "__main__":
     SetLight().light_on("office", "day")
-    SetLight().light_off("office")
+    #SetLight().light_off("office")
