@@ -7,6 +7,8 @@ from pathlib import Path
 
 # move to appropriate place
 mod_path, dir1, quiet_time_f, light_on = Path(__file__).parent, "data", "quiet_time", "light_on"
+# day night vars - temp location
+day, night = "day", "night"
 
 # cmd line args
 parser = ArgumentParser(description="Turns a bulb off or on depending on time/light level",
@@ -57,21 +59,28 @@ if not args.cut_off_hours[0] < time_now.strftime('%H:%M:%S') < args.cut_off_hour
         remove(Path(mod_path, dir1, quiet_time_f))
     # night time light
     if time_now_delta > daylight_hours[1] or "00:00:00" < time_now_delta < args.cut_off_hours[1]:
-        dtime = "night"
+        dtime = night
     # day time light
     else:
-        dtime = "day"
+        dtime = day
 
     # if its dark enough, attempt to turn on the bulb
     if bulb.light_level_reached(args.bulb):
-        if not path.exists(Path(mod_path, dir1, light_on)):
-            with open(Path(mod_path, dir1, light_on), "x") as _: pass
+        if not path.exists(Path(mod_path, dir1, f"{light_on}{dtime}")):
+            with open(Path(mod_path, dir1, f"{light_on}{dtime}"), "x") as _: pass
+            if dtime == day:
+                rm_file = f"{light_on}{night}"
+            else:
+                rm_file = f"{light_on}{day}"
+            # remove old day or night file
+            if path.exists(Path(mod_path, dir1, rm_file)):
+                remove(Path(mod_path, dir1, rm_file))
             send = bulb.light_on(args.bulb, dtime)
             print(f"request for {dtime} light at: {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
             print(f"post response: {send}")
     else:  # too light, turn off bulb
-        if path.exists(Path(mod_path, dir1, light_on)):
-            remove(Path(mod_path, dir1, light_on))
+        if path.exists(Path(mod_path, dir1, f"{light_on}{dtime}")):
+            remove(Path(mod_path, dir1, f"{light_on}{dtime}"))
             send = bulb.light_off(args.bulb)
             print(f"bulb off at {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
             print(f"post response: {send}")
@@ -80,8 +89,8 @@ if not args.cut_off_hours[0] < time_now.strftime('%H:%M:%S') < args.cut_off_hour
 else:
     if not path.exists(Path(mod_path, dir1, quiet_time_f)):
         with open(Path(mod_path, dir1, quiet_time_f), "x") as _: pass
-        if path.exists(Path(mod_path, dir1, light_on)):
-            remove(Path(mod_path, dir1, light_on))
+        if path.exists(Path(mod_path, dir1, f"{light_on}{dtime}")):
+            remove(Path(mod_path, dir1, f"{light_on}{dtime}"))
         send = bulb.light_off(args.bulb)
         print(f"Cut off reached. Bulb off at {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
         print(f"post response: {send}")
