@@ -89,8 +89,9 @@ if not args.cut_off_hours[0] < time_now.strftime('%H:%M:%S') < args.cut_off_hour
 else:
     if not path.exists(Path(mod_path, dir1, quiet_time_f)):
         with open(Path(mod_path, dir1, quiet_time_f), "x") as _: pass
-        if path.exists(Path(mod_path, dir1, f"{light_on}{dtime}")):
-            remove(Path(mod_path, dir1, f"{light_on}{dtime}"))
+        for t in [day, night]:
+            if path.exists(Path(mod_path, dir1, f"{light_on}{t}")):
+                remove(Path(mod_path, dir1, f"{light_on}{t}"))
         send = bulb.light_off(args.bulb)
         print(f"Cut off reached. Bulb off at {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
         print(f"post response: {send}")
