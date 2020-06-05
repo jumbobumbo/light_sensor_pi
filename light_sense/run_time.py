@@ -121,7 +121,7 @@ current_time = datetime.now().strftime('%H:%M:%S')
 
 # Are we outside of cut off hours?
 if not args.cut_off_hours[0] < current_time < args.cut_off_hours[1]:
-    file_p = data_dir.joinpathq(quiet_time_f)
+    file_p = data_dir.joinpath(quiet_time_f)
     if Events.exists(file_p):
         Events.rm([file_p])
     # night or day time light
