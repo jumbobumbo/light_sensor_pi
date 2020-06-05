@@ -5,6 +5,7 @@ from argparse import ArgumentParser
 from os import path, remove
 from pathlib import Path
 
+
 class Events:
 
     @staticmethod
@@ -25,8 +26,8 @@ class Events:
             response {str} -- response from request [200, 500, 404]
         """
         print(f"'{event}' @ {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}'\n"
-            f"command response: {response}"
-            )
+              f"command response: {response}"
+              )
 
     @staticmethod
     def del_if_exists(file_paths: list) -> bool:
@@ -48,7 +49,7 @@ class Events:
         return return_bool
 
     @staticmethod
-    def sunset_delta(ranges: list, sun_set: str, pattern = lambda i: int(1 + (i**2/2 - i/2))) -> str:
+    def sunset_delta(ranges: list, sun_set: str, pattern=lambda i: int(1 + (i**2/2 - i/2))) -> str:
         """
         returns the sunset time with an added delta in the following format: '%H:%M:%S'
 
@@ -72,7 +73,8 @@ class Events:
             elif index == ranges_max_index:
                 delta = 0
 
-        sun_set_delta = (datetime.strptime(sun_set, '%H:%M:%S') + timedelta(hours=delta)).strftime('%H:%M:%S')
+        sun_set_delta = (datetime.strptime(sun_set, '%H:%M:%S') +
+                         timedelta(hours=delta)).strftime('%H:%M:%S')
 
         return sun_set_delta
 
@@ -93,50 +95,58 @@ parser.add_argument("cut_off_hours",
                     )
 
 args = parser.parse_args()
-args.cut_off_hours = args.cut_off_hours.split("_") # get start and end quiet hours
+args.cut_off_hours = args.cut_off_hours.split(
+    "_")  # get start and end quiet hours
 
 # create bulb object
 bulb = SetLight()
 
-# paths
-mod_path, data_dir = Path(__file__).parent, "data"
-# write files
+# data DIR
+data_dir = Path(Path(__file__).parent).joinpath("data")
+# write files names
 quiet_time_f, light_on = "quiet_time", "light_on"
 # transitions
 day, night = "day", "night"
+# possible light on files
+light_files = [data_dir.joinpath(
+    f"{light_on}{day}"), data_dir.joinpath(f"{light_on}{night}")]
 
 # I want blue light for a little bit of the darkness, then red for the rest of the night
 # This will vary with time of year, so below is to take this into account by adding a delta
 sunset_delta = Events.sunset_delta([["18", "20"], ["17", "18"], ["15", "17"]],
-                                              td().daytime[1]
-                                             )
+                                   td().daytime[1]
+                                   )
 
 current_time = datetime.now().strftime('%H:%M:%S')
 
 # Are we outside of cut off hours?
 if not args.cut_off_hours[0] < current_time < args.cut_off_hours[1]:
-    file_p = Path(mod_path, data_dir, quiet_time_f)
+    file_p = data_dir.joinpathq(quiet_time_f)
     if Events.exists(file_p):
         Events.rm([file_p])
     # night or day time light
-    dtime = night if current_time > sunset_delta or "00:00:00" < current_time < args.cut_off_hours[1] else day
+    dtime = night if current_time > sunset_delta or "00:00:00" < current_time < args.cut_off_hours[
+        1] else day
 
     # if its dark enough, attempt to turn on the bulb
     if bulb.light_level_reached(args.bulb):
-        file_p = Path(mod_path, data_dir, f"{light_on}{dtime}")
+        file_p = data_dir.joinpath(f"{light_on}{dtime}")
         if not Events.exists(file_p):
             Events.write(file_p)
-            file_p = Path(mod_path, data_dir, f"{light_on}{night}" if dtime == day else f"{light_on}{day}")  # remove old day or night file
+            # remove old day or night file
+            file_p = data_dir.joinpath(
+                f"{light_on}{night}" if dtime == day else f"{light_on}{day}")
             if Events.exists(file_p):
                 Events.rm([file_p])
-            Events.log_time_resp(f"{dtime} light on", bulb.light_on(args.bulb, dtime))
+            Events.log_time_resp(f"{dtime} light on",
+                                 bulb.light_on(args.bulb, dtime))
     else:  # too light, turn off bulb
-        if Events.del_if_exists(Path(mod_path, dir1, f"{light_on}{day}", Path(mod_path, dir1, f"{light_on}{night}"):
+        if Events.del_if_exists(light_files):
             Events.log_time_resp(f"light off", bulb.light_off(args.bulb))
 
-# cut off time reached
-else:
-    file_p = Path(mod_path, data_dir, quiet_time_f)
+else:  # cut off time reached
+    file_p = data_dir.joinpath(quiet_time_f)
     if not Events.exists(file_p):
-        Events.del_if_exists(Path(mod_path, dir1, f"{light_on}{day}", Path(mod_path, dir1, f"{light_on}{night}"):
-        Events.log_time_resp(f"Cut off reached. light off", bulb.light_off(args.bulb))
+        Events.del_if_exists(light_files)
+        Events.log_time_resp(f"Cut off reached. light off",
+                             bulb.light_off(args.bulb))
