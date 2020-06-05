@@ -14,7 +14,7 @@ class Events:
     def rm(file_paths: list): [remove(f) for f in file_paths]
 
     @staticmethod
-    def exists(file_path): True if path.exists(file_path) else False
+    def exists(file_path): return True if path.exists(file_path) else False
 
     @staticmethod
     def log_time_resp(event: str, response: str):
@@ -29,9 +29,28 @@ class Events:
             )
 
     @staticmethod
-    def time_time_delta(ranges: list, sun_set: str, pattern = lambda i: 1 + (i**2/2 - i/2)):
+    def del_if_exists(file_paths: list) -> bool:
         """
-        returns the current time and the current time plus a delta as '%H:%M:%S'
+        loops through a list of Path objects, deletes the files if they exist
+
+        Arguments:
+            file_paths {list} -- [Path(mod_path, data_dir, f1), Path(mod_path, data_dir, f2)]
+
+        Returns:
+            bool -- will return True if it deletes a file from the list else False
+        """
+        return_bool = False
+        for f in file_paths:
+            if Events.exists(f):
+                return_bool = True
+                Events.rm([f])
+
+        return return_bool
+
+    @staticmethod
+    def sunset_delta(ranges: list, sun_set: str, pattern = lambda i: int(1 + (i**2/2 - i/2))) -> str:
+        """
+        returns the sunset time with an added delta in the following format: '%H:%M:%S'
 
         Arguments:
             ranges {list} -- list of lists - containing 24 hour clock HOUR values
@@ -42,19 +61,20 @@ class Events:
             pattern {lambda} -- lambda to determine your delta (default: {lambdai:1+(i**2/2 - i/2)})
               default will change 1, 2, 3 into 1, 2, 4
 
-        Returns:
-            current time, delta time
+        Returns: str -- sunstime time with delta added
         """
-        time_now = datetime.now()
         ranges_max_index = len(ranges) - 1
 
         for index, t_range in enumerate(ranges):
             if f"{t_range[0].zfill(2)}:00:00" < sun_set <= f"{t_range[1].zfill(2)}:00:00":
                 delta = pattern(index)
+                break
             elif index == ranges_max_index:
                 delta = 0
 
-        return time_now.strftime('%H:%M:%S'), (time_now + timedelta(hours=delta)).strftime('%H:%M:%S')
+        sun_set_delta = (datetime.strptime(sun_set, '%H:%M:%S') + timedelta(hours=delta)).strftime('%H:%M:%S')
+
+        return sun_set_delta
 
 
 parser = ArgumentParser(description="Turns a bulb off or on depending on time/light level",
@@ -72,84 +92,51 @@ parser.add_argument("cut_off_hours",
                          "seperated_by_underscores. example: 02:00:00_08:00:00"
                     )
 
-# I want blue light for a little bit of the darkness, then red for the rest of the night
-# This will vary with time of year, so below is to take this into account by adding a delta
-
-# collect daylight hours
-daylight_hours = td().daytime
-
-
-# Get time, time delta
-time_now, time_delta = Events.time_time_delta([["15", "17"], ["17", "18"], ["18", "20"]],
-                                              td().daytime
-                                             )
-
-print("test")
-# amend for changing sunset hours - add delta
-if "15:00:00" < daylight_hours[1] <= "17:00:00":
-    delta = 4
-elif "17:00:00" < daylight_hours[1] <= "18:00:00":
-    delta = 2
-elif "18:00:00" < daylight_hours[1] <= "20:00:00":
-    delta = 1
-else:
-    delta = 0
-
-# collect time now
-# time_now = datetime.now()
-# time_now_delta = (time_now + timedelta(hours=delta)).strftime('%H:%M:%S')
+args = parser.parse_args()
+args.cut_off_hours = args.cut_off_hours.split("_") # get start and end quiet hours
 
 # create bulb object
 bulb = SetLight()
 
-args = parser.parse_args()
-args.cut_off_hours = args.cut_off_hours.split("_") # get start and end quiet hours
-
 # paths
-mod_path, dir1 = Path(__file__).parent, "data"
+mod_path, data_dir = Path(__file__).parent, "data"
 # write files
 quiet_time_f, light_on = "quiet_time", "light_on"
 # transitions
 day, night = "day", "night"
 
-if not args.cut_off_hours[0] < time_now.strftime('%H:%M:%S') < args.cut_off_hours[1]:
-    if path.exists(Path(mod_path, dir1, quiet_time_f)):
-        remove(Path(mod_path, dir1, quiet_time_f))
-    # night time light
-    if time_delta > daylight_hours[1] or "00:00:00" < time_delta < args.cut_off_hours[1]:
-        dtime = night
-    # day time light
-    else:
-        dtime = day
+# I want blue light for a little bit of the darkness, then red for the rest of the night
+# This will vary with time of year, so below is to take this into account by adding a delta
+sunset_delta = Events.sunset_delta([["18", "20"], ["17", "18"], ["15", "17"]],
+                                              td().daytime[1]
+                                             )
+
+current_time = datetime.now().strftime('%H:%M:%S')
+
+# Are we outside of cut off hours?
+if not args.cut_off_hours[0] < current_time < args.cut_off_hours[1]:
+    file_p = Path(mod_path, data_dir, quiet_time_f)
+    if Events.exists(file_p):
+        Events.rm([file_p])
+    # night or day time light
+    dtime = night if current_time > sunset_delta or "00:00:00" < current_time < args.cut_off_hours[1] else day
 
     # if its dark enough, attempt to turn on the bulb
     if bulb.light_level_reached(args.bulb):
-        if not path.exists(Path(mod_path, dir1, f"{light_on}{dtime}")):
-            with open(Path(mod_path, dir1, f"{light_on}{dtime}"), "x") as _: pass
-            if dtime == day:
-                rm_file = f"{light_on}{night}"
-            else:
-                rm_file = f"{light_on}{day}"
-            # remove old day or night file
-            if path.exists(Path(mod_path, dir1, rm_file)):
-                remove(Path(mod_path, dir1, rm_file))
-            send = bulb.light_on(args.bulb, dtime)
-            print(f"request for {dtime} light at: {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
-            print(f"post response: {send}")
+        file_p = Path(mod_path, data_dir, f"{light_on}{dtime}")
+        if not Events.exists(file_p):
+            Events.write(file_p)
+            file_p = Path(mod_path, data_dir, f"{light_on}{night}" if dtime == day else f"{light_on}{day}")  # remove old day or night file
+            if Events.exists(file_p):
+                Events.rm([file_p])
+            Events.log_time_resp(f"{dtime} light on", bulb.light_on(args.bulb, dtime))
     else:  # too light, turn off bulb
-        if path.exists(Path(mod_path, dir1, f"{light_on}{dtime}")):
-            remove(Path(mod_path, dir1, f"{light_on}{dtime}"))
-            send = bulb.light_off(args.bulb)
-            print(f"bulb off at {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
-            print(f"post response: {send}")
+        if Events.del_if_exists(Path(mod_path, dir1, f"{light_on}{day}", Path(mod_path, dir1, f"{light_on}{night}"):
+            Events.log_time_resp(f"light off", bulb.light_off(args.bulb))
 
 # cut off time reached
 else:
-    if not path.exists(Path(mod_path, dir1, quiet_time_f)):
-        with open(Path(mod_path, dir1, quiet_time_f), "x") as _: pass
-        for t in [day, night]:
-            if path.exists(Path(mod_path, dir1, f"{light_on}{t}")):
-                remove(Path(mod_path, dir1, f"{light_on}{t}"))
-        send = bulb.light_off(args.bulb)
-        print(f"Cut off reached. Bulb off at {time_now.strftime('%d/%m/%Y, %H:%M:%S')}")
-        print(f"post response: {send}")
+    file_p = Path(mod_path, data_dir, quiet_time_f)
+    if not Events.exists(file_p):
+        Events.del_if_exists(Path(mod_path, dir1, f"{light_on}{day}", Path(mod_path, dir1, f"{light_on}{night}"):
+        Events.log_time_resp(f"Cut off reached. light off", bulb.light_off(args.bulb))
