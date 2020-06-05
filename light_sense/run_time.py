@@ -98,16 +98,13 @@ args = parser.parse_args()
 args.cut_off_hours = args.cut_off_hours.split(
     "_")  # get start and end quiet hours
 
-# create bulb object
 bulb = SetLight()
 
-# data DIR
 data_dir = Path(Path(__file__).parent).joinpath("data")
-# write files names
+# partial file names and transition events
 quiet_time_f, light_on = "quiet_time", "light_on"
-# transitions
 day, night = "day", "night"
-# possible light on files
+# full names of files signifying a day or night light being active
 light_files = [data_dir.joinpath(
     f"{light_on}{day}"), data_dir.joinpath(f"{light_on}{night}")]
 
@@ -122,11 +119,9 @@ current_time = datetime.now().strftime('%H:%M:%S')
 # Are we outside of cut off hours?
 if not args.cut_off_hours[0] < current_time < args.cut_off_hours[1]:
     file_p = data_dir.joinpath(quiet_time_f)
-    if Events.exists(file_p):
-        Events.rm([file_p])
-    # night or day time light
-    dtime = night if current_time > sunset_delta or "00:00:00" < current_time < args.cut_off_hours[
-        1] else day
+    Events.del_if_exists([file_p])
+
+    dtime = night if current_time > sunset_delta or "00:00:00" < current_time < args.cut_off_hours[1] else day
 
     # if its dark enough, attempt to turn on the bulb
     if bulb.light_level_reached(args.bulb):
@@ -136,10 +131,9 @@ if not args.cut_off_hours[0] < current_time < args.cut_off_hours[1]:
             # remove old day or night file
             file_p = data_dir.joinpath(
                 f"{light_on}{night}" if dtime == day else f"{light_on}{day}")
-            if Events.exists(file_p):
-                Events.rm([file_p])
-            Events.log_time_resp(f"{dtime} light on",
-                                 bulb.light_on(args.bulb, dtime))
+            Events.del_if_exists([file_p])
+            Events.log_time_resp(f"{dtime} light on", bulb.light_on(args.bulb, dtime))
+
     else:  # too light, turn off bulb
         if Events.del_if_exists(light_files):
             Events.log_time_resp("light off", bulb.light_off(args.bulb))
@@ -148,5 +142,4 @@ else:  # cut off time reached
     file_p = data_dir.joinpath(quiet_time_f)
     if not Events.exists(file_p):
         Events.del_if_exists(light_files)
-        Events.log_time_resp("Cut off reached. light off",
-                             bulb.light_off(args.bulb))
+        Events.log_time_resp("Cut off reached. light off", bulb.light_off(args.bulb))
