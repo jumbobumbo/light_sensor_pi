@@ -141,5 +141,6 @@ if not args.cut_off_hours[0] < current_time < args.cut_off_hours[1]:
 else:  # cut off time reached
     file_p = data_dir.joinpath(quiet_time_f)
     if not Events.exists(file_p):
-        Events.del_if_exists(light_files)
+        Events.write(file_p)
+        Events.del_if_exists(light_files)  # remove light on files
         Events.log_time_resp("Cut off reached. light off", bulb.light_off(args.bulb))
