@@ -25,7 +25,7 @@ class Events:
             event {str} -- event type, on, off, cut off
             response {str} -- response from request [200, 500, 404]
         """
-        print(f"'{event}' @ {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}'\n"
+        print(f"{event} @ {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}\n"
               f"command response: {response}"
               )
 
@@ -142,11 +142,11 @@ if not args.cut_off_hours[0] < current_time < args.cut_off_hours[1]:
                                  bulb.light_on(args.bulb, dtime))
     else:  # too light, turn off bulb
         if Events.del_if_exists(light_files):
-            Events.log_time_resp(f"light off", bulb.light_off(args.bulb))
+            Events.log_time_resp("light off", bulb.light_off(args.bulb))
 
 else:  # cut off time reached
     file_p = data_dir.joinpath(quiet_time_f)
     if not Events.exists(file_p):
         Events.del_if_exists(light_files)
-        Events.log_time_resp(f"Cut off reached. light off",
+        Events.log_time_resp("Cut off reached. light off",
                              bulb.light_off(args.bulb))
