@@ -1,12 +1,13 @@
-from flask import Flask, request
 from common.connection_manager import TPLConn as TPL
 from common.sun_coms import RetrieveSunRiseSet as SunSet
+from common.lifx_conn import ReturnConnectedLightsViaName as Lifx
 
 from time import sleep
-
+from flask import Flask, request
 
 # flask object
 app = Flask(__name__, static_url_path="")
+
 
 @app.route("/")
 def test_flask() -> str:
@@ -14,7 +15,8 @@ def test_flask() -> str:
     simply for test
     :return: str
     """
-    return "<h1>Pages:</h1><p>tplbulb_set</p><p>tplbulb_get</p>"
+    return "<h1>Pages:</h1><p>tplbulb_set</p><p>tplbulb_get</p><p>lifxbulb_set</p><p>sun_get</p>"
+
 
 @app.route("/tplbulb_set/", methods=["POST"])
 def tpl_bulb_set() -> dict:
@@ -57,6 +59,7 @@ def tpl_bulb_set() -> dict:
 
     return return_data
 
+
 @app.route("/tplbulb_get/", methods=["POST"])
 def tpl_bulb_get() -> dict:
     """
@@ -73,6 +76,31 @@ def tpl_bulb_get() -> dict:
 
     with TPL(post_data["ip"]) as bulb:
         return bulb.__dict__
+
+
+@app.route("/lifxbulb_set/", methods=["POST"])
+def lifx_set() -> dict:
+    """
+    Turns lifx bulb(s) off or on, completely controlled by colour
+    Example post input for a warn bright light:
+        {"room1": [750, 1000, 65000, 1000]}
+    Example post input for off:
+        {"room1": [0, 0, 0, 0]}
+
+    Returns:
+        dict: dict containing the bulb name, and a tuple of its set color values
+    """
+    post_data = request.get_json()
+
+    return_dict = {}
+    with Lifx([bulb for bulb in post_data.keys()]) as l_bulbs:
+        for b in l_bulbs.devices:
+            b.set_color(post_data[b.label])
+            sleep(0.2)  # give the set enough time to complete
+            return_dict[b.label] = b.get_color()
+
+    return return_dict
+
 
 @app.route("/sun_get/", methods=["POST"])
 def sunrise_api_get() -> dict:
@@ -94,6 +122,7 @@ def sunrise_api_get() -> dict:
                f"only: lat, lng and date are valid"
 
     return SunSet().req_data_from_response(post_data)
+
 
 def key_validator(keys: list, data: dict) -> list:
     """
@@ -117,4 +146,4 @@ def key_validator(keys: list, data: dict) -> list:
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8082)
+    app.run(host="0.0.0.0", port=8084, debug=True)
