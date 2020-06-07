@@ -6,4 +6,5 @@ services:
     ports:
         - "8082:8082"
     restart: always
+    network_mode: host
     command: python3 /app/flask_app.py

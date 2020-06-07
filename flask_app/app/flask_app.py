@@ -83,21 +83,27 @@ def lifx_set() -> dict:
     """
     Turns lifx bulb(s) off or on, completely controlled by colour
     Example post input for a warn bright light:
-        {"room1": [750, 1000, 65000, 1000]}
+        {"room1": {"state": "on", "colors": [750, 1000, 65000, 1000]}}
     Example post input for off:
-        {"room1": [0, 0, 0, 0]}
+        {"room1": {"state": "off"}}
 
     Returns:
-        dict: dict containing the bulb name, and a tuple of its set color values
+        dict: dict containing the bulb name, (if "on") tuple of its set color values (else) the power status
     """
     post_data = request.get_json()
 
     return_dict = {}
     with Lifx([bulb for bulb in post_data.keys()]) as l_bulbs:
         for b in l_bulbs.devices:
-            b.set_color(post_data[b.label])
-            sleep(0.2)  # give the set enough time to complete
-            return_dict[b.label] = b.get_color()
+            if post_data[b.label]["state"] == "on":  # turn bulb on, set color
+                b.set_power(65535)
+                b.set_color(post_data[b.label]["colors"])
+                sleep(0.2)  # give the set enough time to complete
+                return_dict[b.label] = b.get_color()
+            else:  # bulb off
+                b.set_power(0)
+                sleep(0.2)
+                return_dict[b.label] = b.get_power()
 
     return return_dict
 
@@ -146,4 +152,4 @@ def key_validator(keys: list, data: dict) -> list:
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8084, debug=True)
+    app.run(host="0.0.0.0", port=8082)
