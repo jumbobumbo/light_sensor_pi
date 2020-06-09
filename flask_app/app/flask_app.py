@@ -4,6 +4,7 @@ from common.lifx_conn import ReturnConnectedLightsViaName as Lifx
 
 from time import sleep
 from flask import Flask, request
+from collections import defaultdict
 
 # flask object
 app = Flask(__name__, static_url_path="")
@@ -83,28 +84,47 @@ def lifx_set() -> dict:
     """
     Turns lifx bulb(s) off or on, completely controlled by colour
     Example post input for a warn bright light:
-        {"room1": {"state": "on", "colors": [750, 1000, 65000, 1000]}}
+        {"room1": {"power": "on", "color": [750, 1000, 65000, 1000]}}
     Example post input for off:
-        {"room1": {"state": "off"}}
+        {"room1": {"power": "off"}}
 
     Returns:
-        dict: dict containing the bulb name, (if "on") tuple of its set color values (else) the power status
+        dict: dict containing the bulb name and list of None values or Errors
     """
     post_data = request.get_json()
 
-    return_dict = {}
+    return_dict = defaultdict(list)
     with Lifx([bulb for bulb in post_data.keys()]) as l_bulbs:
         for b in l_bulbs.devices:
-            if post_data[b.label]["state"] == "on":  # turn bulb on, set color
-                b.set_power(65535)
+            for func, param in post_data[b.label].items():
+                if func == "power":  # convert "on", "off" into req power values
+                    param = 65535 if post_data[b.label]["power"] == "on" else 0
+                return_dict[b.label].append(getattr(b, f"set_{func}")(param))
                 sleep(0.1)
-                b.set_color(post_data[b.label]["colors"])
-                sleep(0.1)  # give the set enough time to complete
-                return_dict[b.label] = b.get_color()
-            else:  # bulb off
-                b.set_power(0)
+
+    return return_dict
+
+
+@app.route("/lifxbulb_get/", methods=["POST"])
+def lifx_get() -> dict:
+    """
+    fetches requested params for lifx bulb
+    Example post input for current power and colour:
+        {"room1": ["power", "color"]}
+
+    Returns:
+        dict: bulb name as key, list of return values from function calls as value
+        Example:
+            {'room1': [65535, [512, 1000, 65000, 2500]]}
+    """
+    post_data = request.get_json()
+
+    return_dict = defaultdict(list)
+    with Lifx([bulb for bulb in post_data.keys()]) as l_bulbs:
+        for b in l_bulbs.devices:
+            for arg in post_data[b.label]:
+                return_dict[b.label].append(getattr(b, f"get_{arg}")())
                 sleep(0.1)
-                return_dict[b.label] = b.get_power()
 
     return return_dict
 
@@ -118,7 +138,8 @@ def sunrise_api_get() -> dict:
 
     Returns:
         dict -- example response:
-            {'results': {'sunrise': '2020-05-30T05:33:21+00:00', 'sunset': '2020-05-30T18:21:19+00:00'}}
+            {'results': {'sunrise': '2020-05-30T05:33:21+00:00',
+                'sunset': '2020-05-30T18:21:19+00:00'}}
     """
     post_data = request.get_json()
 
