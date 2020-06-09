@@ -3,7 +3,10 @@ LDR light sensor - flask - TPLink smart bulb control
   
 ## Utilises Sunrise-Sunset api for day/night information  
 https://sunrise-sunset.org/api  
-  
+ 
+## Utilses lifxlan pip package by Meghan Clark
+https://pypi.org/project/lifxlan/
+
 ## Utilses the 'tp-link-LB130-Smart-Wi-Fi-Bulb' project by Brian Dorey  
 https://github.com/briandorey/tp-link-LB130-Smart-Wi-Fi-Bulb  
 ### The following python files originate from the project  
@@ -27,9 +30,11 @@ Also the on/off if statement spanning lines 74 - 83
   
   
   
-# Crontolling the light via flask application.  
+# Crontolling lights via flask application.  
+
 ## 1. Review flask app python file (flask_app/flask_app.py)  
-  
+
+## - TPLINK 
 - tpl_bulb_set (Set bulb state, colours, etc)
   
 function to control bulb via an ip- takes post data  
@@ -37,15 +42,20 @@ function to control bulb via an ip- takes post data
 example below:  
   
 import requests  
-requests.post("http://192.168.1.181:8082/tplbulb_set/",json={"ip": "local_ip", "actions" : ["on"], "attribs": {"hsb": (240, 75, 100)}})  
+requests.post("http://IP:8082/tplbulb_set/",json={"ip": "local_ip", "actions" : ["on"], "attribs": {"hsb": (240, 75, 100)}})  
   
 This will set turn the bulb on, and set the hue, saturation and brightness  
 Only the key 'ip' is required, "actions" and "attribs" are optional  
-
-## 2. flask application can be ran in a docker container
-- docker_build.sh will allow named manual image builds (suits my sitch best)
-- docker_compose file could be setup to build if it fits better
-
+  
+## - LIFX  
+MORE INFO TO COME  
+import requests  
+requests.post("http://IP:8082/lifxbulb_get/",json={"Bedroom": ["power", "color"]})  
+  
+## 2. flask application can be ran in a docker container  
+- docker_build.sh will allow named manual image builds (suits my sitch best)  
+- docker_compose file could be setup to build if it fits better  
+  
 # local config for light control  
 Within the light_sense DIR the following files contribute to controlling the bulbs state and colour:  
 - common.edge.py: by default reads time till rising edge of a capacitor on gpio pin 7  
