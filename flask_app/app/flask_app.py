@@ -97,12 +97,13 @@ def lifx_set() -> dict:
         for b in l_bulbs.devices:
             if post_data[b.label]["state"] == "on":  # turn bulb on, set color
                 b.set_power(65535)
+                sleep(0.1)
                 b.set_color(post_data[b.label]["colors"])
-                sleep(0.2)  # give the set enough time to complete
+                sleep(0.1)  # give the set enough time to complete
                 return_dict[b.label] = b.get_color()
             else:  # bulb off
                 b.set_power(0)
-                sleep(0.2)
+                sleep(0.1)
                 return_dict[b.label] = b.get_power()
 
     return return_dict
