@@ -16,7 +16,7 @@ def test_flask() -> str:
     simply for test
     :return: str
     """
-    return "<h1>Pages:</h1><p>tplbulb_set</p><p>tplbulb_get</p><p>lifxbulb_set</p><p>sun_get</p>"
+    return "<h1>Pages:</h1><p>tplbulb_set</p><p>tplbulb_get</p><p>lifxbulb_set</p><p>lifxbulb_get</p><p>sun_get</p>"
 
 
 @app.route("/tplbulb_set/", methods=["POST"])
@@ -115,7 +115,7 @@ def lifx_get() -> dict:
     Returns:
         dict: bulb name as key, list of return values from function calls as value
         Example:
-            {'room1': [65535, [512, 1000, 65000, 2500]]}
+            {'room1': ["on", [512, 1000, 65000, 2500]]}
     """
     post_data = request.get_json()
 
@@ -123,8 +123,11 @@ def lifx_get() -> dict:
     with Lifx([bulb for bulb in post_data.keys()]) as l_bulbs:
         for b in l_bulbs.devices:
             for arg in post_data[b.label]:
-                return_dict[b.label].append(getattr(b, f"get_{arg}")())
+                res = getattr(b, f"get_{arg}")()
                 sleep(0.1)
+                if arg == "power":
+                    res = "on" if res == 65535 else "off"
+                return_dict[b.label].append(res)
 
     return return_dict
 
