@@ -1,5 +1,5 @@
 # light_sensor_pi  
-LDR light sensor - flask - TPLink smart bulb control  
+LDR light sensor, Reed switches - flask - TPLink\Lifx smart bulb control  
   
 ## Utilises Sunrise-Sunset api for day/night information  
 https://sunrise-sunset.org/api  
