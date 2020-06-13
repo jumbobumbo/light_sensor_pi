@@ -17,7 +17,8 @@ class GPIOEvent:
             pull_up_down (str, optional): pull the default value of the pin up or down. Defaults to "up".
             bounce (int, optional): debounce value. Defaults to 80.
             return_vals ([type], optional):
-                Requires the keys high and low. Contains the values you wish self.event_status to be populated with. Defaults to dict.
+                Requires the keys high and low. Contains the values you wish self.event_status to be populated with.
+                Defaults to dict.
         """
         self.pin = pin
         self.gpio_event = getattr(GPIO, gpio_event.upper())
