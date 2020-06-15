@@ -37,6 +37,7 @@ if __name__ == "__main__":
                     try:
                         power = post_data.json()
                     except JSONDecodeError:  # we've got back nonsense - back to the top
+                        print(f"ERROR DECODING BULB RESPONSE:\nTime: {day_time}\nError: {post_data}")
                         continue
                     tn = int(time())
                     if tn - last_event[1] >= ignore_time:
