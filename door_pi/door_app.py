@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from globals.post import poster
 
 # CONFIG - move to config file?
-url = "http://192.168.1.149:8082"
+url = "http://192.168.1.210:8082"
 bulb_name = "Bedroom"
 ignore_time = 5  # time limit of door events to ignore (s)
 on = {bulb_name: {"power": "on", "color": [750, 1000, 65000, 1000]}}
