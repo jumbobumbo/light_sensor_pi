@@ -36,22 +36,28 @@ if __name__ == "__main__":
                     post_data = poster(f"{url}/lifxbulb_get/", json=get)
                     try:
                         power = post_data.json()
+                        if bulb_name not in power.keys():
+                            print(f"post data returned @ {day_time}\n{power}")
+                            continue
                     except JSONDecodeError:  # we've got back nonsense - back to the top
                         print(f"ERROR DECODING BULB RESPONSE:\nTime: {day_time}\nError: {post_data}")
                         continue
                     tn = int(time())
                     if tn - last_event[1] >= ignore_time:
-                        if power[bulb_name][0] == "off":
-                            if last_event[0] == return_vals["high"] and current_status == return_vals["low"]:
-                                last_event[0] = current_status
-                            else:
-                                last_event[0], last_event[1] = current_status, tn
-                                poster(f"{url}/lifxbulb_set/",json=on)
-                        if power[bulb_name][0] == "on":
-                            if last_event[0] == return_vals["low"] and current_status == return_vals["high"]:
-                                last_event[0] = current_status
-                            else:
-                                last_event[0], last_event[1] = current_status, tn
-                                poster(f"{url}/lifxbulb_set/",json=off)
+                        try:
+                            if power[bulb_name][0] == "off":
+                                if last_event[0] == return_vals["high"] and current_status == return_vals["low"]:
+                                    last_event[0] = current_status
+                                else:
+                                    last_event[0], last_event[1] = current_status, tn
+                                    poster(f"{url}/lifxbulb_set/",json=on)
+                            if power[bulb_name][0] == "on":
+                                if last_event[0] == return_vals["low"] and current_status == return_vals["high"]:
+                                    last_event[0] = current_status
+                                else:
+                                    last_event[0], last_event[1] = current_status, tn
+                                    poster(f"{url}/lifxbulb_set/",json=off)
+                        except Exception as ex:
+                            print(f"exception @: {day_time}\n{ex}")
                     else:
                         last_event[0], last_event[1] = current_status, tn
