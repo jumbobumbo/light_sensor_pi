@@ -1,4 +1,3 @@
-from globals.post import poster
 from common.gpio_events import GPIOEvent
 from time import time, sleep
 from datetime import datetime
@@ -6,6 +5,7 @@ from json import JSONDecodeError
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from globals.post import poster
 
 # CONFIG - move to config file?
 url = "http://192.168.1.210:8082"
