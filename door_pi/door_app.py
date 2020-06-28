@@ -1,10 +1,11 @@
+from globals.post import poster
 from common.gpio_events import GPIOEvent
 from time import time, sleep
 from datetime import datetime
 from json import JSONDecodeError
-import os, sys
+import os
+import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from globals.post import poster
 
 # CONFIG - move to config file?
 url = "http://192.168.1.210:8082"
@@ -22,7 +23,38 @@ days = {
     "Saturday": ["11:00:00", "23:00:00"],
     "Sunday": ["11:00:00", "23:00:00"]
 }
-return_vals={"high": "open", "low": "closed"}
+return_vals = {"high": "open", "low": "closed"}
+
+
+def post_verify_key(date_time: list,
+                    attempts: int = 3,
+                    delay: int = 2,
+                    url: str = url,
+                    json_data: dict = get,
+                    bulb_name: str = bulb_name):
+    """ Verifies key 'attempts' no of times"""
+    attempt = 0
+
+    while attempt < attempts:
+        resp = poster(f"{url}/lifxbulb_get/", json=json_data)
+        try:
+            post_json = resp.json()
+
+            if bulb_name in post_json.keys():
+                return post_json
+
+            else:
+                print(f"Bulb returned @ {day_time}\n{post_json}")
+
+        except JSONDecodeError:
+            print(f"ERROR DECODING BULB RESPONSE:\nTime: {day_time}")
+
+        attempt += 1
+        sleep(delay)
+
+    return KeyError(f"Max attempts reached, bulb not returning dict with key: {bulb_name}\n"
+                    f"Returned data @ {date_time}: {resp}")
+
 
 if __name__ == "__main__":
     with GPIOEvent(return_vals=return_vals) as gpio:
@@ -33,15 +65,7 @@ if __name__ == "__main__":
             if days[day_time[0]][0] < day_time[1] < days[day_time[0]][1]:  # allow for quiet time
                 current_status = gpio.event_status
                 if current_status != last_event[0]:
-                    post_data = poster(f"{url}/lifxbulb_get/", json=get)
-                    try:
-                        power = post_data.json()
-                        if bulb_name not in power.keys():
-                            print(f"post data returned @ {day_time}\n{power}")
-                            continue
-                    except JSONDecodeError:  # we've got back nonsense - back to the top
-                        print(f"ERROR DECODING BULB RESPONSE:\nTime: {day_time}\nError: {post_data}")
-                        continue
+                    power = post_verify_key(day_time)
                     tn = int(time())
                     if tn - last_event[1] >= ignore_time:
                         try:
@@ -50,13 +74,13 @@ if __name__ == "__main__":
                                     last_event[0] = current_status
                                 else:
                                     last_event[0], last_event[1] = current_status, tn
-                                    poster(f"{url}/lifxbulb_set/",json=on)
+                                    poster(f"{url}/lifxbulb_set/", json=on)
                             if power[bulb_name][0] == "on":
                                 if last_event[0] == return_vals["low"] and current_status == return_vals["high"]:
                                     last_event[0] = current_status
                                 else:
                                     last_event[0], last_event[1] = current_status, tn
-                                    poster(f"{url}/lifxbulb_set/",json=off)
+                                    poster(f"{url}/lifxbulb_set/", json=off)
                         except Exception as ex:
                             print(f"exception @: {day_time}\n{ex}")
                     else:
