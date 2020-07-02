@@ -56,7 +56,7 @@ def tpl_bulb_set() -> dict:
             for key, val in post_data["attribs"].items():
                 setattr(bulb, key, val)
 
-        return_data = bulb.__dict__
+        return_data = vars(bulb)
 
     return return_data
 
@@ -76,7 +76,7 @@ def tpl_bulb_get() -> dict:
         return "An IP must be given to create a bulb connection"
 
     with TPL(post_data["ip"]) as bulb:
-        return bulb.__dict__
+        return vars(bulb)
 
 
 @app.route("/lifxbulb_set/", methods=["POST"])
